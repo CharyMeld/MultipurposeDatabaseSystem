@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    public function showLoginForm()
+    {
+        if (Session::has('user_id')) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $username = $request->input('login_name');
+        $password = $request->input('login_password');
+
+        $user = DB::table('User')->where('login_name', $username)->first();
+
+        if ($user && Hash::check($password, $user->login_password)) {
+            Session::put('user_id', $user->id);
+            Session::put('login_name', $user->login_name);
+            Session::put('role_id', $user->role_id);
+            Session::put('full_name', $user->firstname . ' ' . $user->lastname);
+
+            return redirect()->route('dashboard');
+        } else {
+            return redirect()->route('login')->with('error', 'Invalid username or password');
+        }
+    }
+    
+   public function logout()
+    {
+        Session::forget('user_id');
+        Session::forget('login_name');
+        Session::forget('role_id');
+        Session::forget('full_name');
+        Session::save();
+        
+        return redirect()->route('login');
+    }
+
+
+}
+

@@ -1,0 +1,183 @@
+.h-viewport{
+
+	min-height:100vh!important;
+}
+.text-white{
+	color: white!important;
+}
+th{
+	font-weight: bold!important;
+}
+
+.ml-btn{
+	margin-left: 15px!important;
+}
+.mr-btn{
+	margin-right: 15px!important;
+}
+.text-center{
+	text-align: center !important;
+}
+.input-required{
+	color: red;
+}
+
+.cursor-pointer{
+	cursor: pointer!important;
+}
+.left-border:first-child{
+	border-left: none;
+}
+
+.left-border{
+	display: inline-block;
+	border-left: solid thin #ccc;
+	padding: 3px;
+
+}
+.underline{
+	padding-bottom: 0.8rem !important;
+	border-bottom: solid thin #ccc!important;
+}
+.overflow-x{
+	overflow-x: scroll!important;
+}
+#biodata-table tr > td:first-child{
+	font-weight: bold!important;
+}
+
+#academic-table tr > td:first-child{
+	font-weight: bold!important;
+}
+
+.student-profile .col-md-6 .card{
+	min-height: 100%!important;
+}
+#biodata-table .passport-section > img{
+	width: 200px!important;
+	height: 200px!important;
+}
+.transcript-table{
+	width: 100%;
+}
+.transcript-table tr,.transcript-table td,.transcript-table th{
+	border: solid thin #444;
+}
+.transcript-table td,.transcript-table th{
+	padding: 2px;
+}
+.transcript-heading{
+	width: 100%;
+	margin-bottom: 2rem;
+}
+.text-center{
+	text-align: center!important;
+}
+.page-link{
+	cursor: pointer;
+}
+#main-wrapper .topbar .top-navbar .navbar-header[data-logobg=skin1]{
+	background:#ddd;
+}
+#main-wrapper .topbar .navbar-collapse[data-navbarbg=skin1],#main-wrapper .topbar[data-navbarbg=skin1]{
+	background:#ddd;
+}
+#main-wrapper .left-sidebar[data-sidebarbg=skin1],#main-wrapper .left-sidebar[data-sidebarbg=skin1] ul{
+	background:#ddd;
+}
+#main-wrapper .left-sidebar[data-sidebarbg=skin1] .create-btn,#main-wrapper .left-sidebar[data-sidebarbg=skin1] ul .create-btn{
+	background:#27a9e3
+}
+.sidebar-nav ul .sidebar-item .sidebar-link i{
+	color: #0f0445;
+}
+
+.sidebar-nav ul .sidebar-item .sidebar-link{
+	color: #0f0445;
+}
+.sidebar-nav .has-arrow:after{
+	border-color: #0f0445 !important;
+}
+.sidebar-item {
+/*	padding-bottom: 15px !important;*/
+	padding-top:15px !important;
+	border-bottom: solid 1px #bbb;
+	border-top: solid 1px #bbb;
+	font-weight: bolder;
+	font-size:1.2rem;
+}
+.first-level > .sidebar-item{
+	font-weight: normal;
+	border:none;
+	padding: 1px !important;
+	font-size: 0.9rem;
+}
+
+.sidebar-nav ul .sidebar-item.selected{
+	background-color: #ccc!important;
+}
+
+.sidebar-nav ul .sidebar-item:hover{
+	background-color: #ccc!important;
+}
+.sidebar-nav ul .sidebar-item.selected > .sidebar-link{
+	background-color: inherit!important;
+}
+
+.item-font{
+	font-size: 2.5rem;
+}
+
+footer,.footer,#footer{
+	background-color: #ccc !important;
+}
+.filter-section{
+	position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    height: 100vh;
+    border-left: thin solid #ddd;
+}
+.empty-data{
+	padding: 2rem !important;
+}
+
+.action-item{
+	right: 55px;
+	font-size: 0.9rem;
+}
+.action-item .fa{
+	margin-right: 15px;
+}
+.toast-alert{
+	right: 15px;
+	z-index: 10001;
+}
+.candidate-image-container{
+	max-width: 100%!important;
+}
+.overview-image{
+	display: block;
+	width: 150px;
+	height: 150px;
+	margin-right: auto;
+	margin-left: auto;
+}
+.candidate-overview td{
+	border:none;
+	border-right:thin solid #ccc;
+	padding:5px;
+}
+.candidate-overview th{
+	background-color: #f4f4f4;
+	border-right: solid thin #f4f4f4;
+	padding: 5px;
+	width: 13%;
+}
+.candidate-overview table{
+
+}
+.candidate-overview tr{
+	border: solid thin #ccc;
+}

@@ -1,0 +1,36 @@
+.content{
+	padding:1.2rem;
+	background-color: white;
+}
+
+.candidate-image-container{
+	width: 200px;
+}
+
+img{
+	max-width: 100%;
+}
+.profile-text{
+	margin-top: auto;
+    margin-bottom: 50px;
+    text-align: center;
+   /* padding-bottom: 3px;
+    border-bottom: thin solid #ccc;*/
+}
+.biodata-table{
+	border:solid thin #efefef;
+/*	font-size: 1.1rem;*/
+}
+.biodata-table tr > td{
+/*	background-color: #efefef;*/
+	border-bottom: thin solid #efefef;
+	margin-bottom: 5px;
+/*	font-weight: bold;*/
+}
+.biodata-table tr > td:first-child{
+	background-color: #fcfcfc;
+	/*border-bottom: thin solid;
+	margin-bottom: 2px;*/
+	
+}
+
