@@ -26,7 +26,7 @@ A comprehensive system to manage users and candidates with their detailed biodat
 ## Technology Stack
 
 - Backend: PHP (Laravel Framework)
-- Frontend: JavaScript, Vue.js, Bootstrap, CSS
+- Frontend: JavaScript, Vue.js, Bootstrap, HTML, CSS
 - Database: MySQL
 - Development Environment: XAMPP
 
