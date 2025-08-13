@@ -9,19 +9,31 @@ class Candidate extends Model
     protected $table = 'candidates'; // or your actual table name
     protected $fillable = [
         'registration_number',
+        'cert_number',
         'surname',
         'other_name',
         'maiden_name',
         'entry_mode',
         'country',
+        'change_of_name',
+        'email',
+        'phone',
+        'address',
+        'postal_address',
         'dob',
         'gender',
         'nationality',
         'fellowship_type',
+        'country',
         'faculty_id',
         'sub_speciality',
+        'full_registration_date',
+        'entry_mode',
         'nysc_discharge_or_exemption',
+        'prefered_exam_center', 
         'accredited_training_program',
+        'post_registration_appointment',
+
     ];
     
         // Medical schools

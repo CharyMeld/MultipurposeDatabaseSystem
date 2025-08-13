@@ -130,7 +130,72 @@ class CandidateController extends Controller
         return view('candidates.edit', compact('candidate', 'faculty'));
     }
 
-    
+
+ /**
+     * Update the specified candidate.
+     * Handles both standard form submissions and AJAX requests.
+     */
+    public function update(Request $request, Candidate $candidate)
+    {
+        //  Validate all fillable fields from Candidate model
+        $validated = $request->validate([
+            'registration_number' => 'nullable|string|max:255',
+            'cert_number' => 'nullable|string|max:255',
+            'surname' => 'nullable|string|max:255',
+            'other_name' => 'nullable|string|max:255',
+            'maiden_name' => 'nullable|string|max:255',
+            'entry_mode' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+            'change_of_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'postal_address' => 'nullable|string|max:255',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|string|in:Male,Female',
+            'nationality' => 'nullable|string|max:255',
+            'fellowship_type' => 'nullable|string|max:50',
+            'faculty_id' => 'nullable|integer|exists:faculty,id',
+            'sub_speciality' => 'nullable|string|max:255',
+            'full_registration_date' => 'nullable|date',
+            'nysc_discharge_or_exemption' => 'nullable|string|max:255',
+            'prefered_exam_center' => 'nullable|string|max:255',
+            'accredited_training_program' => 'nullable|string|max:255',
+            'post_registration_appointment' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $candidate->update($validated);
+
+            DB::commit();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Candidate updated successfully!',
+                    'candidate' => $candidate->fresh()
+                ]);
+            }
+
+            return redirect()
+                ->route('candidates.show', $candidate)
+                ->with('success', 'Candidate updated successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to update candidate. Please try again.'
+                ], 500);
+            }
+
+            return back()->with('error', 'Failed to update candidate. Please try again.');
+        }
+    }
+
     
    
     /**

@@ -13,11 +13,27 @@
     </ul>
 
     <div class="mt-3">
-      <Overview v-if="activeTab === 'Overview'" :candidate="candidate" />
-      <Biodata v-if="activeTab === 'Biodata'" :candidate="candidate" />
-      <ApplicationList v-if="activeTab === 'Applications'" :candidate="candidate" />
-      <Documents v-if="activeTab === 'Documents'" :candidate="candidate" />
-      <Results v-if="activeTab === 'Results'" :candidate="candidate" />
+      <Overview
+        v-if="activeTab === 'Overview'"
+        :candidate-id="candidate?.id"
+        :candidate="candidate"
+      />
+      <Biodata
+        v-if="activeTab === 'Biodata'"
+        :candidate="candidate"
+      />
+      <ApplicationList
+        v-if="activeTab === 'Applications'"
+        :candidate="candidate"
+      />
+      <Documents
+        v-if="activeTab === 'Documents'"
+        :candidate="candidate"
+      />
+      <Results
+        v-if="activeTab === 'Results'"
+        :candidate="candidate"
+      />
     </div>
   </div>
 </template>
@@ -40,3 +56,4 @@ export default {
   }
 };
 </script>
+

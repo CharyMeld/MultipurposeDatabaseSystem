@@ -11,6 +11,15 @@ use Illuminate\Support\Facades\Log; // Good for debugging
 
 class CandidateProfileController extends Controller
 {
+    public function overview($id)
+    {
+        $candidate = Candidate::with(['faculty', 'medicalSchools', 'institutions', 'postgraduateTrainings'])
+            ->findOrFail($id);
+
+        return new CandidateOverviewResource($candidate);
+    }
+
+    
    /**
      * Return JSON data for API calls (used by Vue fetching).
      */
@@ -70,60 +79,6 @@ class CandidateProfileController extends Controller
 
 
 
- /**
-     * Update the specified candidate.
-     * Handles both standard form submissions and AJAX requests.
-     */
-    public function update(Request $request, Candidate $candidate)
-    {
-        // Use the existing validation logic. It's good.
-        $validated = $this->validateCandidateData($request, $candidate->id);
-
-        try {
-            DB::beginTransaction();
-            
-            $candidate->update($validated);
-            
-            DB::commit();
-            
-            Log::info('Candidate updated successfully', ['candidate_id' => $candidate->id]);
-
-            // HERE IS THE FIX: Check if the request is AJAX
-            if ($request->wantsJson() || $request->ajax()) {
-                // If it's an AJAX request from your Vue component, return a JSON response.
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Candidate updated successfully!',
-                    'candidate' => $candidate->fresh() // Send back the updated data
-                ]);
-            }
-            
-            // For traditional form submissions, return the redirect as before.
-            return redirect()
-                ->route('candidates.show', $candidate)
-                ->with('success', 'Candidate updated successfully!');
-                
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to update candidate', [
-                'candidate_id' => $candidate->id,
-                'error' => $e->getMessage()
-            ]);
-            
-            // Also handle AJAX error responses
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Failed to update candidate. Please try again.'
-                ], 500); // 500 Internal Server Error
-            }
-            
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to update candidate. Please try again.');
-        }
-    }
-    
 
 
     /**
@@ -177,39 +132,73 @@ class CandidateProfileController extends Controller
 
     // --- Institution Methods (Corrected) ---
 
-    public function saveInstitution(Request $request)
+     public function saveInstitution(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
             'name' => 'required|string|max:255',
             'degree' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
             'institution_type' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date',
             'status' => 'nullable|boolean'
         ]);
 
-        $institution = Institution::create($data);
-        return response()->json($institution, 201);
+        $institution = \App\Models\Institution::create([
+            'candidate_id' => $request->candidate_id,
+            'name' => $request->name,
+            'degree' => $request->degree,
+            'institution_type' => $request->institution_type,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'status' => $request->has('status') ? 1 : 0
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $institution
+        ]);
     }
+
     
     // Note: You will need to add routes for update/delete institution if you build that functionality.
 
     // --- Postgraduate Training Methods (Corrected) ---
 
-    public function savePostgraduateTraining(Request $request)
+    public function getPostgraduates(Candidate $candidate)
+    {
+        $postgraduates = PostgraduateTraining::where('candidate_id', $candidate->id)
+            ->select('id', 'post_training_school as name') // map column to 'name' for frontend
+            ->get();
+
+        return response()->json($postgraduates);
+    }
+
+    public function savePostgraduate(Candidate $candidate, Request $request)
     {
         $data = $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
-            'post_training_school' => 'required|string|max:255',
+            'name' => 'required|string|max:255', // frontend sends 'name'
             'degree' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date'
         ]);
 
-        $postgrad = PostgraduateTraining::create($data);
-        return response()->json(['status' => 'success', 'data' => $postgrad], 201);
+        // Map 'name' to 'post_training_school' for database
+        $postgrad = PostgraduateTraining::create([
+            'candidate_id' => $data['candidate_id'],
+            'post_training_school' => $data['name'],
+            'degree' => $data['degree'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'] ?? null,
+        ]);
+
+        return response()->json(['status' => 'success', 'data' => [
+            'id' => $postgrad->id,
+            'name' => $postgrad->post_training_school // return as 'name' for frontend
+        ]], 201);
     }
+
     
     // Note: You will need to add routes for update/delete postgrad if you build that functionality.
 }

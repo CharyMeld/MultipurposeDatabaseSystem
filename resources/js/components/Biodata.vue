@@ -11,14 +11,18 @@
       <!-- LEFT COLUMN -->
       <div class="col-md-6">
         <!-- PASSPORT UPLOAD -->
+        
         <div class="text-center mb-4">
           <form id="passportUploadForm" @submit.prevent="submitPassport" enctype="multipart/form-data">
             <div
               id="passport-dropzone"
               class="border rounded d-flex align-items-center justify-content-center"
               style="width: 150px; height: 150px; cursor: pointer; position: relative; margin: 0 auto;"
-              title="Click to select passport image"
               @click.prevent="onPassportClick"
+              @dragover.prevent
+              @dragenter.prevent
+              @drop.prevent="onPassportDrop"
+              title="Click or drag & drop passport image"
             >
               <img
                 :src="passportPreview"
@@ -27,21 +31,18 @@
               />
               <input
                 type="file"
-                name="passport"
                 accept="image/*"
                 style="display: none"
-                @change="onPassportChange"
                 ref="passportInput"
-                :disabled="!!form.passport"
+                @change="onPassportChange"
               />
             </div>
-            <small class="text-muted d-block mt-1">Click image area or drag & drop</small>
-            <button type="submit" class="btn btn-sm btn-primary mt-2" id="uploadButton" :disabled="!!form.passport">
-              Upload
-            </button>
+            <small class="text-muted d-block mt-1">Click the image or drag & drop your passport here</small>
+            <button type="submit" class="btn btn-sm btn-primary mt-2">Upload</button>
           </form>
           <div id="uploadResponse" class="mt-2"></div>
         </div>
+
 
         <!-- MEDICAL SCHOOL ATTENDED -->
         <h5>Medical School Attended</h5>
@@ -148,7 +149,7 @@
         <form v-show="showPostgradForm" id="postgradForm" @submit.prevent="savePostgrad">
           <input type="hidden" name="candidate_id" :value="form.id" />
           <div class="mb-2">
-            <input type="text" name="post_training_school" class="form-control" placeholder="Post Training School" required />
+            <input type="text" name="name" class="form-control" placeholder="Post Training School" required />
           </div>
           <div class="mb-2">
             <input type="text" name="degree" class="form-control" placeholder="Degree" required />
@@ -163,40 +164,59 @@
         </form>
       </div>
 
+      
       <!-- RIGHT COLUMN: CANDIDATE PERSONAL DETAILS -->
-      <div class="col-md-6">
-        <h5>Update Candidate Details</h5>
-        <form @submit.prevent="updateCandidateDetails">
-          <div class="row">
-            <div v-for="field in fields" :key="field" class="col-md-6 mb-2">
-              <select v-if="field === 'gender'" name="gender" class="form-control" v-model="form.gender" :disabled="!!form.gender">
-                <option value="">Select</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+<div class="col-md-6">
+  <h5>Update Candidate Details</h5>
 
-              <select v-else-if="field === 'fellowship_type'" name="fellowship_type" class="form-control" v-model="form.fellowship_type" :disabled="!!form.fellowship_type">
-                <option value="">Select Fellowship Type</option>
-                <option value="Part I">Part I</option>
-                <option value="Part II">Part II</option>
-              </select>
+  <!-- Edit button -->
+  <button type="button" class="btn btn-secondary mb-2" @click="toggleEdit">
+    {{ isEditable ? 'Cancel Edit' : 'Edit' }}
+  </button>
 
-              <input v-else
-                :type="field.includes('date') || field === 'dob' ? 'date' : 'text'"
-                :name="field"
-                class="form-control"
-                :placeholder="formatLabel(field)"
-                v-model="form[field]"
-                :readonly="!!form[field]"
-              />
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary mt-2">Update Details</button>
-        </form>
+  <form @submit.prevent="updateCandidateDetails">
+    <div class="row">
+      <div v-for="field in fields" :key="field" class="col-md-6 mb-2">
+
+        <!-- Gender -->
+        <select v-if="field === 'gender'" name="gender" class="form-control"
+          v-model="form.gender"
+          :disabled="!isEditable">
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+
+        <!-- Fellowship Type -->
+        <select v-else-if="field === 'fellowship_type'" name="fellowship_type" class="form-control"
+          v-model="form.fellowship_type"
+          :disabled="!isEditable">
+          <option value="">Select Fellowship Type</option>
+          <option value="Part I">Part I</option>
+          <option value="Part II">Part II</option>
+        </select>
+
+        <!-- Other fields -->
+        <input v-else
+          :type="field.includes('date') || field === 'dob' ? 'date' : 'text'"
+          :name="field"
+          class="form-control"
+          :placeholder="formatLabel(field)"
+          v-model="form[field]"
+          :readonly="!isEditable"
+        />
       </div>
     </div>
-  </div>
+
+    <!-- Update Button -->
+    <button type="submit" class="btn btn-primary mt-2">Update Details</button>
+  </form>
+</div>
+</div>
+</div>
 </template>
+
+
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
@@ -214,7 +234,7 @@ const props = defineProps({
 // CSRF token
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-// Default candidate shape — include every DB column you provided
+// Default candidate shape
 const defaultCandidate = {
   id: '',
   registration_number: '',
@@ -271,7 +291,7 @@ const showPostgradForm = ref(false);
 const passportPreview = ref(
   form.passport && form.passport.toString().trim()
     ? (form.passport.toString().startsWith('http') ? form.passport : `/storage/passports/${form.passport}`)
-    : '/assets/images/placeholder-passport.png'
+    : '/assets/images/placeholder.png'
 );
 const passportFile = ref(null);
 const passportInput = ref(null);
@@ -284,6 +304,9 @@ const postgrads = ref(props.postgraduates.length ? props.postgraduates : (form.p
 // Edit modal state
 const editMedSchoolData = reactive({ id: null, name: '', start_date: '', end_date: '' });
 let bsModalInstance = null;
+
+// Track candidate edit mode
+const isEditable = ref(false);
 
 // Helpers
 function formatLabel(field) {
@@ -367,7 +390,6 @@ async function saveMedicalSchool(e) {
   }
 }
 
-
 async function updateMedicalSchool(e) {
   e.preventDefault();
   const fd = new FormData(e.target);
@@ -412,12 +434,13 @@ async function deleteMedicalSchool(id) {
   }
 }
 
-
 // Institution & Postgrad
+
 async function saveInstitution(e) {
   const fd = new FormData(e.target);
+  const candidateId = form.id; // make sure you have candidate ID
   try {
-    const res = await fetch('/candidates/profile/save-institution', {
+    const res = await fetch(`/candidates/${candidateId}/profile/save-institution`, {
       method: 'POST',
       headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
       body: fd
@@ -434,28 +457,47 @@ async function saveInstitution(e) {
   }
 }
 
-async function savePostgrad(e) {
-  const fd = new FormData(e.target);
-  try {
-    const res = await fetch('/candidates/profile/save-postgraduate-training', {
-      method: 'POST',
-      headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-      body: fd
-    });
-    const newPostgrad = await res.json();
-    if (!res.ok) throw new Error(newPostgrad.message || 'Save failed');
-    postgrads.value.push(newPostgrad.data || newPostgrad);
-    showServerMessage('success', 'Postgraduate training saved.');
-    e.target.reset();
-    showPostgradForm.value = false;
-  } catch (err) {
-    console.error(err);
-    showServerMessage('error', err.message || err);
-  }
-}
+
+    async function savePostgrad(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+
+      // Make sure form.id is the candidate ID
+      const candidateId = form.id;
+
+      try {
+        const res = await fetch(`/candidates/${candidateId}/profile/save-postgraduate-training`, {
+          method: 'POST',
+          headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+          body: fd
+        });
+
+        const newPostgrad = await res.json();
+        if (!res.ok) throw new Error(newPostgrad.message || 'Save failed');
+
+        postgrads.value.push(newPostgrad.data || newPostgrad);
+        showServerMessage('success', 'Postgraduate training saved.');
+        e.target.reset();
+        showPostgradForm.value = false;
+      } catch (err) {
+        console.error(err);
+        showServerMessage('error', err.message || err);
+      }
+    }
+
+
+    // Toggle candidate edit mode
+    function toggleEdit() {
+      isEditable.value = !isEditable.value;
+    }
 
 // Update candidate details
 async function updateCandidateDetails() {
+  if (!isEditable.value) {
+    showServerMessage('error', 'Please click "Edit" before updating.');
+    return;
+  }
+
   try {
     const res = await fetch(`/candidates/${form.id}`, {
       method: 'PUT',
@@ -466,11 +508,16 @@ async function updateCandidateDetails() {
       },
       body: JSON.stringify(form)
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Update failed');
 
     showServerMessage('success', 'Candidate details updated successfully.');
+
     if (data.candidate) Object.assign(form, data.candidate);
+
+    // Disable edit mode again
+    isEditable.value = false;
   } catch (err) {
     console.error(err);
     showServerMessage('error', err.message || err);
@@ -485,15 +532,14 @@ onMounted(() => {
   }
 });
 
-// Watch for prop updates from parent (if parent re-fetches data)
+// Watch for prop updates
 watch(() => props.candidate, (newVal) => {
   if (newVal && Object.keys(newVal).length) {
     Object.assign(form, { ...defaultCandidate, ...newVal });
     passportPreview.value = form.passport
       ? (form.passport.toString().startsWith('http') ? form.passport : `/storage/passports/${form.passport}`)
-      : '/assets/images/placeholder-passport.png';
+      : '/assets/images/placeholder.png';
 
-    // also refresh lists if parent passed them
     if (Array.isArray(props.medicalSchools) && props.medicalSchools.length) medicalSchools.value = props.medicalSchools;
     if (Array.isArray(props.institutions) && props.institutions.length) institutions.value = props.institutions;
     if (Array.isArray(props.postgraduates) && props.postgraduates.length) postgrads.value = props.postgraduates;
@@ -502,9 +548,16 @@ watch(() => props.candidate, (newVal) => {
 </script>
 
 <style scoped>
-/* small helpers */
 #passport-dropzone img {
-  display:block;
+  display: block;
+}
+
+/* optional: highlight editable fields */
+input[readonly], select[disabled] {
+  background-color: #f8f9fa;
+}
+input:not([readonly]), select:not([disabled]) {
+  background-color: #fff8dc; /* subtle highlight for editable fields */
 }
 </style>
 

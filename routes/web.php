@@ -11,6 +11,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\PermissionManagementController;
+use App\Http\Controllers\DocumentController;
 
 
 
@@ -28,7 +29,10 @@ use App\Http\Controllers\PermissionManagementController;
 // =====================================================================
 
 // Redirect root URL to the login page
-Route::get('/', fn () => redirect()->route('login'));
+Route::get(
+    '/',
+    fn () => redirect()->route('login')
+);
 
 // Authentication routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -63,66 +67,78 @@ Route::middleware(['web', 'auth.session'])->group(function () {
     Route::get('/roles/{id}/permissions', [RoleManagementController::class, 'permissions'])->name('roles.permissions');
     Route::post('/roles/update-permissions', [RoleManagementController::class, 'updatePermissions'])->name('roles.update_permissions');
 
-   // --------------------
-// 🧾 Candidate Management
-// --------------------
+    // --------------------
+    // 🧾 Candidate Management
+    // --------------------
+    Route::get('/candidates/{id}/overview', [CandidateController::class, 'overview']);
 
-Route::prefix('candidates')->name('candidates.')->group(function () {
+    Route::prefix('candidates')->name('candidates.')->group(function () {
 
-    // Standard CRUD
-    Route::get('/', [CandidateController::class, 'index'])->name('index');
-    Route::get('/add_candidate', [CandidateController::class, 'create'])->name('create');
-    Route::post('/', [CandidateController::class, 'store'])->name('store');
-    Route::get('/{candidate}', [CandidateController::class, 'show'])->where('candidate', '[0-9]+')->name('show');
-    Route::get('/{candidate}/edit', [CandidateController::class, 'edit'])->where('candidate', '[0-9]+')->name('edit');
-    Route::put('/{candidate}', [CandidateController::class, 'update'])->where('candidate', '[0-9]+')->name('update');
-    Route::delete('/{candidate}', [CandidateController::class, 'destroy'])->where('candidate', '[0-9]+')->name('destroy');
+        // Standard CRUD
+        Route::get('/', [CandidateController::class, 'index'])->name('index');
+        Route::get('/add_candidate', [CandidateController::class, 'create'])->name('create');
+        Route::post('/', [CandidateController::class, 'store'])->name('store');
+        Route::get('/{candidate}', [CandidateController::class, 'show'])->where('candidate', '[0-9]+')->name('show');
+        Route::get('/{candidate}/edit', [CandidateController::class, 'edit'])->where('candidate', '[0-9]+')->name('edit');
+        Route::put('/{candidate}', [CandidateController::class, 'update'])->where('candidate', '[0-9]+')->name('update');
+        Route::delete('/{candidate}', [CandidateController::class, 'destroy'])->where('candidate', '[0-9]+')->name('destroy');
 
-    // Status toggle
-    Route::patch('/{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])
-        ->where('candidate', '[0-9]+')->name('toggle-status');
+        // Status toggle
+        Route::patch('/{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])
+            ->where('candidate', '[0-9]+')->name('toggle-status');
 
-    // Bulk operations
-    Route::get('/bulk_upload', [CandidateController::class, 'showBulkUploadForm'])->name('bulk-upload');
-    Route::post('/bulk_upload', [CandidateController::class, 'processBulkUpload'])->name('process-bulk-upload');
-    Route::post('/bulk_upload_preview', [CandidateController::class, 'saveBulkPreview'])->name('save-bulk-preview');
+        // Bulk operations
+        Route::get('/bulk_upload', [CandidateController::class, 'showBulkUploadForm'])->name('bulk-upload');
+        Route::post('/bulk_upload', [CandidateController::class, 'processBulkUpload'])->name('process-bulk-upload');
+        Route::post('/bulk_upload_preview', [CandidateController::class, 'saveBulkPreview'])->name('save-bulk-preview');
 
-    // -------------------------
-    // Candidate Profile Routes
-    // -------------------------
-    Route::get('{candidate}/profile', [CandidateProfileController::class, 'show'])->name('profile');
-    Route::get('{candidate}/json', [CandidateProfileController::class, 'showJson'])->name('profile.json');
-
-    Route::prefix('{candidate}/profile')->name('profile.')->group(function () {
-        // Load sections
-        Route::get('load-passport', [CandidateProfileController::class, 'loadPassportUploadSection'])->name('load.passport');
-        Route::get('load-medical-schools', [CandidateProfileController::class, 'loadMedicalSchoolSection'])->name('load.medical');
-        Route::get('load-institutions', [CandidateProfileController::class, 'loadInstitutionSection'])->name('load.institution');
-        Route::get('load-postgrads', [CandidateProfileController::class, 'loadPostgradSection'])->name('load.postgrad');
-
-        // Medical schools
-        Route::post('save-medical-school', [CandidateProfileController::class, 'saveMedicalSchool'])->name('save.medical');
-        Route::put('update-medical-school/{medicalSchool}', [CandidateProfileController::class, 'updateMedicalSchool'])->name('update.medical');
-        Route::delete('delete-medical-school/{medicalSchool}', [CandidateProfileController::class, 'deleteMedicalSchool'])->name('delete.medical');
-
-        
-        // Institutions
-        Route::post('save-institution', [CandidateProfileController::class, 'saveInstitution'])->name('save.institution');
-        Route::put('update-institution/{institution}', [CandidateProfileController::class, 'updateInstitution'])->name('update.institution');
-        Route::delete('delete-institution/{institution}', [CandidateProfileController::class, 'deleteInstitution'])->name('delete.institution');
-
-        // Postgraduates
-        Route::post('save-postgrad', [CandidateProfileController::class, 'savePostgrad'])->name('save.postgrad');
-        Route::put('update-postgrad/{postgrad}', [CandidateProfileController::class, 'updatePostgrad'])->name('update.postgrad');
-        Route::delete('delete-postgrad/{postgrad}', [CandidateProfileController::class, 'deletePostgrad'])->name('delete.postgrad');
+        // -------------------------
+        // Candidate Profile Routes
+        // -------------------------
+        Route::get('{candidate}/profile', [CandidateProfileController::class, 'show'])->name('profile.show');
+        Route::get('{candidate}/json', [CandidateProfileController::class, 'showJson'])->name('profile.json');
+        // web.php
+        Route::put('/candidates/{candidate}', [CandidateProfileController::class, 'update'])
+            ->name('candidates.update');
 
 
+        Route::prefix('{candidate}/profile')->name('profile.')->group(function () {
+            // Load sections
+            Route::get('load-passport', [CandidateProfileController::class, 'loadPassportUploadSection'])->name('load.passport');
+            Route::get('load-medical-schools', [CandidateProfileController::class, 'loadMedicalSchoolSection'])->name('load.medical');
+            Route::get('load-institutions', [CandidateProfileController::class, 'loadInstitutionSection'])->name('load.institution');
+            Route::get('load-postgrads', [CandidateProfileController::class, 'loadPostgradSection'])->name('load.postgrad');
 
-        // Postgraduate training
-        Route::post('save-postgraduate-training', [CandidateProfileController::class, 'savePostgraduateTraining'])->name('save.postgrad.training');
+            // Medical schools
+            Route::post('save-medical-school', [CandidateProfileController::class, 'saveMedicalSchool'])->name('save.medical');
+            Route::put('update-medical-school/{medicalSchool}', [CandidateProfileController::class, 'updateMedicalSchool'])->name('update.medical');
+            Route::delete('delete-medical-school/{medicalSchool}', [CandidateProfileController::class, 'deleteMedicalSchool'])->name('delete.medical');
+
+
+            // Institutions
+            Route::post('save-institution', [CandidateProfileController::class, 'saveInstitution'])->name('save-institution');
+            
+           
+            Route::put('update-institution/{institution}', [CandidateProfileController::class, 'updateInstitution'])->name('update.institution');
+            Route::delete('delete-institution/{institution}', [CandidateProfileController::class, 'deleteInstitution'])->name('delete.institution');
+
+            // Postgraduates
+            Route::post('save-postgrad', [CandidateProfileController::class, 'savePostgrad'])->name('save.postgrad');
+            Route::put('update-postgrad/{postgrad}', [CandidateProfileController::class, 'updatePostgrad'])->name('update.postgrad');
+            Route::delete('delete-postgrad/{postgrad}', [CandidateProfileController::class, 'deletePostgrad'])->name('delete.postgrad');
+
+
+
+            // Postgraduate training
+            Route::post('save-postgraduate-training', [CandidateProfileController::class, 'savePostgraduate'])->name('save-postgrad-training');
+        });
     });
-});
 
+            
+            
+            
+            
+            
     // --------------------
     // 🏫 Faculty
     // --------------------
@@ -143,7 +159,11 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     //-----------------------
     // Documents 
     //----------------------
+
     
     Route::post('/documents/upload', [DocumentController::class, 'upload'])->name('documents.upload');
+    Route::get('/candidates/{id}/applications-documents', [DocumentController::class, 'getApplicationsAndDocuments']);
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
+
 });
 
